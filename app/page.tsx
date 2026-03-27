@@ -6,7 +6,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-import { GoPaperclip } from "react-icons/go";
+// import { GoPaperclip } from "react-icons/go";
 import { BsPlusCircleFill } from "react-icons/bs";
 import { BsPlusCircle } from "react-icons/bs";
 
