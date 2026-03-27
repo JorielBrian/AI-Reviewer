@@ -34,13 +34,9 @@ export default function Home() {
   }
 
   return (
-    <main className="flex p-10 w-full h-screen items-center justify-center space-y-6">
-      <div className="flex w-1/2 *:w-full h-screen items-end">
-        <Card className="flex h-screen justify-between border border-gray-300 shadow-2xl">
-          <CardHeader className="top-0">
-            <CardTitle className="font-bold text-2xl">AI Reviewer</CardTitle>
-          </CardHeader>
-
+    <main className="flex w-full h-200 items-start justify-center space-y-6">
+      <div className="flex w-1/2 *:w-full h-full items-start">
+        <Card className="flex h-full justify-between border border-gray-300 shadow-2xl">
           <CardContent className="flex space-y-4">
             {result && (
               <Card>
