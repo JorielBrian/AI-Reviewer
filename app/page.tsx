@@ -2,92 +2,187 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 
-// import { GoPaperclip } from "react-icons/go";
-import { BsPlusCircleFill } from "react-icons/bs";
-import { BsPlusCircle } from "react-icons/bs";
+// Icons
+import { FiPaperclip } from "react-icons/fi";
+import { RiSendPlaneFill } from "react-icons/ri";
+
+type Message = {
+  role: 'user' | 'assistant';
+  content: string;
+};
 
 export default function Home() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [processedContent, setProcessedContent] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const [url, setUrl] = useState("");
-  const [prompt, setPrompt] = useState("");
-  const [result, setResult] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [processingContent, setProcessingContent] = useState(false);
+  const [showUploadPopup, setShowUploadPopup] = useState(false);
 
-  // Toggle for showing file/url inputs
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  async function processContent() {
+    if (!file && !url) return;
 
-  async function handleSubmit() {
-    setLoading(true);
+    setProcessingContent(true);
     const formData = new FormData();
     if (file) formData.append("file", file);
     if (url) formData.append("url", url);
-    formData.append("prompt", prompt);
 
-    const res = await fetch("/api/analyze", { method: "POST", body: formData });
-    const data = await res.json();
-    setResult(data.result || data.error);
-    setLoading(false);
+    try {
+      const res = await fetch("/api/process-content", { method: "POST", body: formData });
+      const data = await res.json();
+      if (data.content) {
+        setProcessedContent(data.content);
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: `Content processed successfully! You can now ask me questions about it.`
+        }]);
+        setShowUploadPopup(false);
+      } else {
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: data.error || "Failed to process content"
+        }]);
+      }
+    } catch {
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: "Failed to process content"
+      }]);
+    } finally {
+      setProcessingContent(false);
+      setFile(null);
+      setUrl("");
+    }
+  }
+
+  async function handleSend() {
+    if (!input.trim()) return;
+
+    const userMessage: Message = { role: 'user', content: input };
+    setMessages(prev => [...prev, userMessage]);
+    setInput("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: [...messages, userMessage], content: processedContent }),
+      });
+      const data = await res.json();
+
+      if (data.message) {
+        const aiMessage: Message = { role: 'assistant', content: data.message };
+        setMessages(prev => [...prev, aiMessage]);
+      } else {
+        const errorMessage: Message = { role: 'assistant', content: data.error || "Something went wrong" };
+        setMessages(prev => [...prev, errorMessage]);
+      }
+    } catch {
+      const errorMessage: Message = { role: 'assistant', content: "Failed to get response" };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <main className="flex w-full h-200 items-start justify-center space-y-6">
-      <div className="flex w-1/2 *:w-full h-full items-start">
-        <Card className="flex h-full justify-between border border-gray-300 shadow-2xl">
-          <CardContent className="flex space-y-4">
-            {result && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>AI Response</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <pre className="whitespace-pre-wrap">{result}</pre>
-                </CardContent>
-              </Card>
-            )}
-            {/* Advanced inputs */}
-            {showAdvanced && (
+    <main className="flex w-full h-screen items-center justify-center p-4">
+      <Card className="w-full max-w-4xl h-full flex flex-col shadow-lg">
+        <CardContent className="flex-1 p-4 overflow-hidden flex flex-col">
+          {/* Chat Section */}
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <div className="flex-1 overflow-y-auto mb-4">
+              <div className="space-y-4">
+                {messages.map((msg, index) => (
+                  <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                      msg.role === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'
+                    }`}>
+                      {msg.content}
+                    </div>
+                  </div>
+                ))}
+                {loading && (
+                  <div className="flex justify-start">
+                    <div className="max-w-xs lg:max-w-md px-4 py-2 rounded-lg bg-gray-200 text-black">
+                      Thinking...
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Input Section */}
+            <div className="flex gap-2 items-end">
+              <Button
+                onClick={() => setShowUploadPopup(!showUploadPopup)}
+                className="input-button px-4 py-2 bg-white text-black shadow-2xl border border-gray-200"
+                title="Upload content"
+              >
+                <FiPaperclip />
+              </Button>
+              <Input
+                placeholder="Ask questions about your content..."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                disabled={loading}
+              />
+              <Button 
+                onClick={handleSend} 
+                disabled={loading || !input.trim()}
+                className="input-button"
+              >
+                <RiSendPlaneFill />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Upload Content Popup Modal */}
+      {showUploadPopup && (
+        <div className="fixed inset-0 bg-black/20 bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <Card className="w-full max-w-md">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Upload Content</h3>
+                <button
+                  onClick={() => setShowUploadPopup(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+                >
+                  ×
+                </button>
+              </div>
               <div className="flex flex-col gap-3">
                 <input
                   type="file"
-                  className="w-full p-4 rounded-2xl border"
+                  accept=".pdf,video/*"
                   onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  className="w-full p-2 border rounded"
                 />
                 <Input
-                  placeholder="Enter URL"
+                  placeholder="Enter YouTube URL or website URL"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                 />
+                <Button onClick={processContent} disabled={processingContent || (!file && !url)}>
+                  {processingContent ? "Processing..." : "Process Content"}
+                </Button>
               </div>
-            )}
-          </CardContent>
-          <CardFooter className="flex gap-3">
-
-            {/* Toggle button for advanced inputs */}
-            <Button
-              variant="outline"
-              onClick={() => setShowAdvanced((prev) => !prev)}
-              className="size-12 border-none shadow-none"
-            >
-              {showAdvanced ? <BsPlusCircle className="size-6" /> : <BsPlusCircleFill className="size-6" />}
-            </Button>
-
-
-            <Textarea
-              placeholder="Enter your prompt"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-            />
-
-            <Button onClick={handleSubmit} disabled={loading}>
-              {loading ? "Processing..." : "Send"}
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
+              {processedContent && (
+                <p className="text-sm text-green-600 mt-3">Content loaded and ready for questions!</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </main>
   );
 }
