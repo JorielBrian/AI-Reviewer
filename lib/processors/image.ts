@@ -19,14 +19,12 @@ export async function processImage(file: File, prompt: string) {
           {
             type: "input_image",
             image_url: dataUrl,
-            detail: "auto", // ✅ FIX HERE
+            detail: "auto",
           },
         ],
       },
     ],
   });
 
-  return Response.json({
-    result: res.output_text,
-  });
+  return { content: res.output_text };
 }
