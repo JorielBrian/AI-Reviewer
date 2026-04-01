@@ -1,30 +1,12 @@
-import { openai } from "../openai";
+import Tesseract from "tesseract.js";
 
-export async function processImage(file: File, prompt: string) {
-  const bytes = await file.arrayBuffer();
-  const base64 = Buffer.from(bytes).toString("base64");
+export async function processImage(file: File) {
+  const buffer = await file.arrayBuffer();
 
-  const dataUrl = `data:${file.type};base64,${base64}`;
+  const { data } = await Tesseract.recognize(
+    Buffer.from(buffer),
+    "eng"
+  );
 
-  const res = await openai.responses.create({
-    model: "gpt-4.1",
-    input: [
-      {
-        role: "user",
-        content: [
-          {
-            type: "input_text",
-            text: prompt,
-          },
-          {
-            type: "input_image",
-            image_url: dataUrl,
-            detail: "auto",
-          },
-        ],
-      },
-    ],
-  });
-
-  return { content: res.output_text };
+  return { content: data.text };
 }

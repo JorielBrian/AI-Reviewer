@@ -1,33 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
-import { openai } from "@/lib/openai";
+import { generateText } from "@/lib/services/ollama";
+
+type ChatMessage = {
+  role: "user" | "assistant" | "system";
+  content: string;
+};
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages, content } = await req.json();
+    const { messages, content }: { messages: ChatMessage[]; content?: string } =
+      await req.json();
 
-    if (!messages || !Array.isArray(messages)) {
-      return NextResponse.json({ error: "Messages array is required" }, { status: 400 });
-    }
+    const conversation = messages
+      .map((m) => `${m.role}: ${m.content}`)
+      .join("\n");
 
-    const systemMessage = content
-      ? {
-          role: "system",
-          content: `You are an AI assistant that helps users understand and analyze content. The user has provided the following content for analysis: ${content.slice(0, 10000)}. Answer questions about this content and provide insights.`
-        }
-      : {
-          role: "system",
-          content: "You are a helpful AI assistant."
-        };
+    const prompt = `
+You are a helpful AI assistant.
 
-    const res = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [systemMessage, ...messages],
-      stream: false,
-    });
+${content ? `Context:\n${content.slice(0, 8000)}\n` : ""}
 
-    const aiMessage = res.choices[0].message.content ?? "";
+Conversation:
+${conversation}
 
-    return NextResponse.json({ message: aiMessage });
+Answer the latest user question.
+`;
+
+    const response = await generateText(prompt);
+
+    return NextResponse.json({ message: response });
   } catch (error) {
     console.error(error);
     return NextResponse.json(

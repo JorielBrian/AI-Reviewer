@@ -1,19 +1,17 @@
-import { openai } from "../openai";
+import { generateText } from "./ollama";
 
-export async function askAI(content: string, prompt: string) {
-  const res = await openai.chat.completions.create({
-    model: "gpt-4.1",
-    messages: [
-      {
-        role: "system",
-        content: "You analyze and extract useful information from content.",
-      },
-      {
-        role: "user",
-        content: `CONTENT:\n${content}\n\nREQUEST:\n${prompt}`,
-      },
-    ],
-  });
+export async function askAI(content: string, question: string) {
+  const prompt = `
+You are an AI assistant.
 
-  return res.choices[0].message.content ?? "";
+Answer the question ONLY based on the context below.
+
+Context:
+${content.slice(0, 8000)}
+
+Question:
+${question}
+`;
+
+  return await generateText(prompt);
 }

@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   try {
     if (file) {
       if (file.type.startsWith("image")) {
-        const result = await processImage(file, prompt);
+        const result = await processImage(file);
         return NextResponse.json({ result: result.content });
       }
 
