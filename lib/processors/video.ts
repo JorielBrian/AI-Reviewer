@@ -1,4 +1,7 @@
-// /lib/processors/video.ts
+// Video processing module (placeholder implementation)
+// This module currently provides informative messages for video files
+// Video processing (transcription, analysis) is not yet implemented
+// Users should use transcripts or YouTube links instead
 
 export async function processVideo(file: File) {
   // For now, return a helpful message with file info
