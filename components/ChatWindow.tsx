@@ -60,6 +60,8 @@ const ChatWindow = ({ messages, loading, responseTime }: Props) => {
                   {responseTime.toFixed(2)}s {/* Formatted time with 2 decimal places */}
                 </span>
               )}
+                </span>
+              )}
             </div>
           )}
         </div>

@@ -44,6 +44,7 @@ export default function Home() {
 
   // State to control upload modal visibility
   const [showUploadPopup, setShowUploadPopup] = useState(false);
+  const [responseTime, setResponseTime] = useState<number | null>(null);
 
   // State to track response time for performance monitoring
   const [responseTime, setResponseTime] = useState<number | null>(null);
@@ -83,6 +84,8 @@ export default function Home() {
             role: "assistant",
             content: "Content processed successfully! You can now ask me questions about it."
           }
+        ]);
+>>>>>>> e734d731a02b4f562c330bf3a26263ad1a3991f3
         ]);
 
         // Close the upload modal
@@ -133,6 +136,7 @@ export default function Home() {
             role: "assistant",
             content: "⚠️ Ollama is not running. Please start it with `ollama run llama3` or `ollama serve`."
           }
+        ]);
         ]);
         setLoading(false);
         return;
@@ -243,6 +247,14 @@ export default function Home() {
           )}
 
           {/* Chat input component for user input and upload button */}
+=======
+  return (
+    <main className="flex w-full h-screen items-center justify-center p-4">
+      <Card className="w-full max-w-4xl h-full flex flex-col shadow-lg">
+        <CardContent className="flex-1 p-4 overflow-hidden flex flex-col">
+          <ChatWindow messages={messages} loading={loading} responseTime={responseTime} />
+          {processedContent && <div className="text-xs text-gray-500 mb-2">Content loaded ({processedContent.length} chars)</div>}
+>>>>>>> e734d731a02b4f562c330bf3a26263ad1a3991f3
           <ChatInput
             input={input}
             setInput={setInput}
