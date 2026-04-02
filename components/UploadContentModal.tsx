@@ -63,61 +63,25 @@ const UploadContentModal = ({
               onChange={(e) => setUrl(e.target.value)} // Update URL value
             />
 
-                    <Button onClick={processContent} disabled={processingContent || (!file && !url)}>
-                    {processingContent ? "Processing..." : "Process Content"}
-                    </Button>
-                </div>
+            {/* Process content button */}
+            <Button
+              onClick={processContent} // Trigger content processing
+              disabled={processingContent || (!file && !url)} // Disable if processing or no input
+            >
+              {processingContent ? "Processing..." : "Process Content"}
+            </Button>
+          </div>
 
-                {processedContent && (
-                    <p className="text-sm text-green-600 mt-3">
-                    Content loaded and ready for questions!
-                    </p>
-                )}
-                </CardContent>
-            </Card>
-        </div>
-    )
-}
+          {/* Success message when content is processed */}
+          {processedContent && (
+            <p className="text-sm text-green-600 mt-3">
+              Content loaded and ready for questions!
+            </p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
 
-export default UploadContentModal
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold">Upload Content</h3>
-                    <button
-                    onClick={() => setShow(false)}
-                    className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
-                    >
-                    ×
-                    </button>
-                </div>
-
-                <div className="flex flex-col gap-3">
-                    <input
-                    type="file"
-                    accept=".pdf,image/*,video/*"
-                    onChange={(e) => setFile(e.target.files?.[0] || null)}
-                    className="w-full p-2 border rounded"
-                    />
-
-                    <Input
-                    placeholder="Enter YouTube URL or website URL"
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    />
-
-                    <Button onClick={processContent} disabled={processingContent || (!file && !url)}>
-                    {processingContent ? "Processing..." : "Process Content"}
-                    </Button>
-                </div>
-
-                {processedContent && (
-                    <p className="text-sm text-green-600 mt-3">
-                    Content loaded and ready for questions!
-                    </p>
-                )}
-                </CardContent>
-            </Card>
-        </div>
-    )
-}
-
-export default UploadContentModal
+export default UploadContentModal;
